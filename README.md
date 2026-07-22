@@ -8,7 +8,8 @@
 
 - **完全ローカル処理**: 音声データはネットワークに送信されない（個人情報を含む音声でも安心して使える）
 - **日本語対応**: 言語自動検出、または `--language ja` で明示指定可能
-- **タイムスタンプ付き出力**: `[HH:MM:SS - HH:MM:SS] テキスト` 形式でセグメントごとに出力
+- **2種類のテキストを同時出力**: `[HH:MM:SS - HH:MM:SS] テキスト` 形式の**時刻タグ付き**と、時刻タグを除いて句点ごとに改行した**整形済み**（`_formatted.txt`）の両方を `output/` に生成
+- **上書き防止**: 出力先を明示指定しない場合、ファイル名に実行日時とモデル名を含めるため、同じ音声を複数回・別モデルで実行しても過去の結果が消えない
 
 ## セットアップ
 
@@ -40,13 +41,15 @@ pip install -r requirements.txt
 ## 使い方
 
 ```bash
-# input/ に音声ファイルを置いて実行（出力は output/ 以下に自動生成）
+# input/ に音声ファイルを置いて実行
+# → output/sample_small_<実行日時>.txt（時刻タグ付き）と
+#   output/sample_small_<実行日時>_formatted.txt（整形済み）を生成
 python transcribe.py input/sample.m4a
 
-# モデルサイズ・言語を指定
+# モデルサイズ・言語を指定（ファイル名にもモデル名が入るので結果を比較しやすい）
 python transcribe.py input/sample.m4a --model medium --language ja
 
-# 出力先を指定
+# 出力先を指定（この場合はファイル名固定・上書きされるので注意）
 python transcribe.py input/sample.m4a --output output/result.txt
 
 # オプション例の一覧を表示

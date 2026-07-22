@@ -55,7 +55,14 @@ cd /Users/masahiro/projects/audio_transcriber
 python transcribe.py input/sample.m4a
 ```
 
-実行後、`output/sample.txt` にタイムスタンプ付きの文字起こし結果が保存される。
+実行後、2種類のテキストファイルが `output/` に保存される。出力先を明示指定しない場合、ファイル名に**モデル名と実行日時**を含めるため、同じ音声ファイルを複数回・異なるモデルで実行しても過去の結果が上書きされない。
+
+| ファイル | 内容 |
+|---|---|
+| `output/sample_small_20260722_143000.txt` | `[HH:MM:SS - HH:MM:SS] テキスト` 形式の時刻タグ付き |
+| `output/sample_small_20260722_143000_formatted.txt` | 時刻タグを除き、句点（。）ごとに改行した整形済みテキスト |
+
+`--output` で出力先を明示指定した場合は、指定したファイル名がそのまま使われる（モデル名・実行日時は付与されない）。この場合は同じパスを指定して再実行すると上書きされるので注意。指定したファイル名と同じ場所に `_formatted` を付けたファイルが追加で生成される（例: `--output output/result.txt` なら `output/result.txt` と `output/result_formatted.txt`）。
 
 ```bash
 # オプション例の一覧を表示
@@ -128,3 +135,5 @@ Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\huggingface\hub\models--Sys
 | 2026-07-22 | 新規作成。faster-whisperによるローカルCLIツールとして構築 |
 | 2026-07-22 | モデルの選び方・保存先・削除方法を追記。`transcribe.py ?` でオプション例を表示する機能を追加 |
 | 2026-07-22 | Windowsでのセットアップ手順・モデルキャッシュの保存先/削除方法を追記（未検証） |
+| 2026-07-22 | 実行のたびに時刻タグ付き（`<name>.txt`）と時刻タグなし整形済み（`<name>_formatted.txt`）の2ファイルを自動生成するよう変更 |
+| 2026-07-22 | 出力先未指定時、ファイル名にモデル名・実行日時を含めて上書きを防止するよう変更 |

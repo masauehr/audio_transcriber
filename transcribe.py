@@ -2,6 +2,9 @@
 音声ファイルから文字起こしを行うCLIツール。
 
 faster-whisper（ローカル実行）を使用し、音声データを外部に送信せずに文字起こしする。
+実行するたびに、時刻タグ付きと時刻タグなしの整形済みの2種類のテキストファイルを output/ に生成する。
+出力先を明示指定しない場合、ファイル名には実行日時とモデル名を含めるため、同じ音声ファイルを
+異なるモデルや複数回実行しても上書きされない（例: sample_medium_20260722_143000.txt）。
 
 使い方:
     python transcribe.py input/sample.m4a
@@ -10,6 +13,7 @@ faster-whisper（ローカル実行）を使用し、音声データを外部に
 """
 
 import argparse
+import datetime
 import pathlib
 import sys
 
@@ -24,7 +28,9 @@ def format_timestamp(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 
-def transcribe(audio_path: pathlib.Path, model_size: str, language: str | None) -> list[str]:
+def transcribe(
+    audio_path: pathlib.Path, model_size: str, language: str | None
+) -> tuple[list[str], list[str]]:
     print(f"モデル読み込み中: {model_size}")
     model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
@@ -33,23 +39,35 @@ def transcribe(audio_path: pathlib.Path, model_size: str, language: str | None) 
 
     print(f"検出言語: {info.language}（確度 {info.language_probability:.2f}）")
 
-    lines = []
+    timestamped_lines = []
+    texts = []
     for segment in segments:
         start = format_timestamp(segment.start)
         end = format_timestamp(segment.end)
         text = segment.text.strip()
         line = f"[{start} - {end}] {text}"
         print(line)
-        lines.append(line)
+        timestamped_lines.append(line)
+        texts.append(text)
 
-    return lines
+    return timestamped_lines, texts
+
+
+def format_plain_text(texts: list[str]) -> str:
+    """セグメントのテキストを結合し、時刻タグなし・句点区切りの読みやすい形に整形する"""
+    full_text = "".join(texts)
+    sentences = [s for s in full_text.split("。") if s.strip()]
+    return "\n".join(f"{s}。" for s in sentences)
 
 
 USAGE_EXAMPLES = """\
 使い方の例:
 
-  基本（モデル small・言語自動検出、output/<ファイル名>.txt に保存）
+  基本（モデル small・言語自動検出）
     python transcribe.py input/sample.m4a
+    → output/sample_small_<実行日時>.txt（時刻タグ付き）と
+      output/sample_small_<実行日時>_formatted.txt（整形済み）を生成
+      ※ 実行のたびに日時が変わるので上書きされない
 
   モデルサイズと言語を指定
     python transcribe.py input/sample.m4a --model medium --language ja
@@ -60,7 +78,7 @@ USAGE_EXAMPLES = """\
   最高精度モデルで実行（CPUではかなり時間がかかる）
     python transcribe.py input/sample.m4a --model large-v3 --language ja
 
-  出力先を指定
+  出力先を指定（この場合はファイル名そのまま・上書きされるので注意）
     python transcribe.py input/sample.m4a --output output/result.txt
 
 モデルサイズの選び方・容量・削除方法は MANUAL.md を参照。
@@ -95,13 +113,18 @@ def main():
     if args.output:
         output_path = pathlib.Path(args.output)
     else:
-        output_path = pathlib.Path("output") / f"{audio_path.stem}.txt"
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_path = pathlib.Path("output") / f"{audio_path.stem}_{args.model}_{timestamp}.txt"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    lines = transcribe(audio_path, args.model, args.language)
+    timestamped_lines, texts = transcribe(audio_path, args.model, args.language)
 
-    output_path.write_text("\n".join(lines), encoding="utf-8")
-    print(f"\n文字起こし結果を保存しました: {output_path}")
+    output_path.write_text("\n".join(timestamped_lines), encoding="utf-8")
+    print(f"\n文字起こし結果（時刻タグ付き）を保存しました: {output_path}")
+
+    formatted_path = output_path.with_name(f"{output_path.stem}_formatted.txt")
+    formatted_path.write_text(format_plain_text(texts), encoding="utf-8")
+    print(f"整形済みテキスト（時刻タグなし）を保存しました: {formatted_path}")
 
 
 if __name__ == "__main__":
