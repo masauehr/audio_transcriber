@@ -30,6 +30,9 @@ python transcribe.py input/sample.m4a --model medium --language ja
 
 # 出力先を指定
 python transcribe.py input/sample.m4a --output output/result.txt
+
+# オプション例の一覧を表示
+python transcribe.py ?
 ```
 
 ### 対応フォーマット
@@ -38,11 +41,14 @@ m4a, mp3, wav, mp4 など、ffmpegが対応する主要な音声・動画フォ�
 
 ### モデルサイズ
 
+日本語の会議・スピーチ音声では `small` はやや誤認識が多く、`medium` 以上で実用精度になる体感。詳しい比較・保存先・削除方法は [MANUAL.md](MANUAL.md) を参照。
+
 | モデル | 精度 | 速度（CPU） | 用途 |
 |---|---|---|---|
 | `tiny` / `base` | 低 | 速い | 下書き・雑音の少ない音声 |
-| `small`（デフォルト） | 中 | 標準 | 通常の会議・インタビュー |
-| `medium` | 高 | 遅い | 精度重視 |
+| `small`（デフォルト） | 中 | 標準 | 手早く内容を把握したい場合 |
+| `medium` | 高 | やや遅い | 通常の会議・インタビュー |
+| `large-v3-turbo` | 高〜最高 | `medium`よりやや遅い程度 | 精度と速度のバランス重視。実用上の第一候補 |
 | `large-v3` | 最高 | かなり遅い | 専門用語・多言語混在音声 |
 
 ## 注意事項

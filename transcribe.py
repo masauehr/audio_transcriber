@@ -45,7 +45,33 @@ def transcribe(audio_path: pathlib.Path, model_size: str, language: str | None) 
     return lines
 
 
+USAGE_EXAMPLES = """\
+使い方の例:
+
+  基本（モデル small・言語自動検出、output/<ファイル名>.txt に保存）
+    python transcribe.py input/sample.m4a
+
+  モデルサイズと言語を指定
+    python transcribe.py input/sample.m4a --model medium --language ja
+
+  高精度モデルで実行（速度と精度のバランス重視）
+    python transcribe.py input/sample.m4a --model large-v3-turbo --language ja
+
+  最高精度モデルで実行（CPUではかなり時間がかかる）
+    python transcribe.py input/sample.m4a --model large-v3 --language ja
+
+  出力先を指定
+    python transcribe.py input/sample.m4a --output output/result.txt
+
+モデルサイズの選び方・容量・削除方法は MANUAL.md を参照。
+"""
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "?":
+        print(USAGE_EXAMPLES)
+        sys.exit(0)
+
     parser = argparse.ArgumentParser(description="音声ファイルから文字起こしを行う")
     parser.add_argument("audio_file", help="文字起こし対象の音声ファイルパス")
     parser.add_argument(

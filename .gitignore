@@ -8,5 +8,8 @@ output/*
 __pycache__/
 *.pyc
 
+# macOS
+.DS_Store
+
 # Whisperモデルのキャッシュ（ローカルに大容量ファイルが生成される）
 .cache/
