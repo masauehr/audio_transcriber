@@ -19,12 +19,32 @@ GitHub: https://github.com/masauehr/audio_transcriber （プライベート。`i
 
 ## セットアップ
 
+### Mac / Linux
+
 ```bash
 cd /Users/masahiro/projects/audio_transcriber
 pip install -r requirements.txt
 ```
 
 対応フォーマット（m4a, mp3, wav, mp4等）の変換にffmpegを使用するため、未インストールの場合は `brew install ffmpeg` が必要。
+
+### Windows
+
+`transcribe.py`はOS依存の処理を使っていないため、コードはそのままWindowsでも動く（未検証）。
+
+```powershell
+cd audio_transcriber
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Mac/Linuxとの違いは以下の2点。
+
+| 項目 | Mac / Linux | Windows |
+|---|---|---|
+| ffmpegのインストール | `brew install ffmpeg` | [公式サイト](https://ffmpeg.org/download.html)からダウンロードしてPATHに追加、または`winget install ffmpeg` |
+| モデルキャッシュの保存先 | `~/.cache/huggingface/hub/` | `%USERPROFILE%\.cache\huggingface\hub\`（例: `C:\Users\<ユーザー名>\.cache\huggingface\hub\`） |
 
 ---
 
@@ -75,14 +95,19 @@ python transcribe.py input/meeting.m4a --model medium --language ja
 
 ## モデルの保存先・削除方法
 
-ダウンロードしたモデルは `~/.cache/huggingface/hub/` 以下に保存され、2回目以降は再ダウンロードなしで使われる。
+ダウンロードしたモデルは `~/.cache/huggingface/hub/` 以下（Windowsは `%USERPROFILE%\.cache\huggingface\hub\`）に保存され、2回目以降は再ダウンロードなしで使われる。
 
 ```bash
-# キャッシュ済みモデルと容量の確認
+# Mac / Linux: キャッシュ済みモデルと容量の確認
 du -sh ~/.cache/huggingface/hub/models--*whisper*
 
-# 特定モデルの削除（例: smallを削除）
+# Mac / Linux: 特定モデルの削除（例: smallを削除）
 rm -rf ~/.cache/huggingface/hub/models--Systran--faster-whisper-small
+```
+
+```powershell
+# Windows: 特定モデルの削除（例: smallを削除）
+Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\huggingface\hub\models--Systran--faster-whisper-small"
 ```
 
 ディスク容量が気になる場合、使わないモデルはこの方法で個別に削除してよい（次回そのモデルを指定すると自動で再ダウンロードされる）。
@@ -102,3 +127,4 @@ rm -rf ~/.cache/huggingface/hub/models--Systran--faster-whisper-small
 |------|------|
 | 2026-07-22 | 新規作成。faster-whisperによるローカルCLIツールとして構築 |
 | 2026-07-22 | モデルの選び方・保存先・削除方法を追記。`transcribe.py ?` でオプション例を表示する機能を追加 |
+| 2026-07-22 | Windowsでのセットアップ手順・モデルキャッシュの保存先/削除方法を追記（未検証） |

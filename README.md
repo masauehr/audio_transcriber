@@ -12,12 +12,30 @@
 
 ## セットアップ
 
+### Mac / Linux
+
 ```bash
 cd audio_transcriber
 pip install -r requirements.txt
 ```
 
-初回実行時にWhisperモデル（`small` はおよそ500MB）が自動ダウンロードされ、`~/.cache/huggingface/` にキャッシュされる。
+初回実行時にWhisperモデル（`small` はおよそ500MB）が自動ダウンロードされ、`~/.cache/huggingface/hub/` にキャッシュされる。
+
+### Windows
+
+```powershell
+cd audio_transcriber
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+コード自体はOS依存の処理を使っていないため、Windowsでも同じ`transcribe.py`がそのまま動く。ただし以下の2点はMacと異なる。
+
+- **ffmpeg**: `brew install ffmpeg` の代わりに、[公式サイト](https://ffmpeg.org/download.html)からダウンロードしてPATHに追加するか、`winget install ffmpeg` を実行する
+- **モデルキャッシュの保存先**: `~/.cache/huggingface/hub/` ではなく `%USERPROFILE%\.cache\huggingface\hub\`（例: `C:\Users\<ユーザー名>\.cache\huggingface\hub\`）
+
+※ Windows環境での動作は未検証。ffmpegのPATH設定でつまずく可能性がある。
 
 ## 使い方
 
