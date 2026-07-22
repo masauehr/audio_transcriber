@@ -1,0 +1,12 @@
+# 音声ファイル・文字起こし結果は個人情報を含む可能性があるためコミットしない
+input/*
+!input/.gitkeep
+output/*
+!output/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+
+# Whisperモデルのキャッシュ（ローカルに大容量ファイルが生成される）
+.cache/
