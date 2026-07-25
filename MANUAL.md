@@ -26,14 +26,18 @@ GitHub: https://github.com/masauehr/audio_transcriber （プライベート。`i
 
 ```bash
 cd /Users/masahiro/projects/audio_transcriber
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+Python標準ライブラリの `venv` を使う。Homebrew版Python等、システムPythonへの直接 `pip install` がPEP 668によりブロックされる環境があり、venv作成が事実上必須。以後、実行するたびに毎回 `source .venv/bin/activate` してから `python transcribe.py ...` / `python server.py` を叩く。
 
 対応フォーマット（m4a, mp3, wav, mp4等）の変換にffmpegを使用するため、未インストールの場合は `brew install ffmpeg` が必要。
 
 ### Windows
 
-`transcribe.py`はOS依存の処理を使っていないため、コードはそのままWindowsでも動く（未検証）。
+`transcribe.py`・`server.py`はOS依存の処理を使っていないため、コードはそのままWindowsでも動く（未検証）。
 
 ```powershell
 cd audio_transcriber
@@ -47,6 +51,10 @@ Mac/Linuxとの違いは以下の1点のみ。
 | 項目 | Mac / Linux | Windows |
 |---|---|---|
 | ffmpegのインストール | `brew install ffmpeg` | [公式サイト](https://ffmpeg.org/download.html)からダウンロードしてPATHに追加、または`winget install ffmpeg` |
+
+### 別PCへの移植について
+
+`.venv/` はPythonバイナリへの絶対パスを内部に持つため、**フォルダごとコピーしても別PCでは動かない**。移植する際は `.venv/` を除いてプロジェクトフォルダをコピーし、移植先で改めて上記セットアップ（`python -m venv .venv` から）をやり直す。一方 `.cache/huggingface/`（ダウンロード済みのWhisperモデル）は単なるデータファイルなのでそのままコピーしてよく、移植先での再ダウンロードを避けられる。
 
 モデルキャッシュの保存先はOSによらずプロジェクト内 `.cache/huggingface/` に統一されている（詳細は後述の「モデルの保存先・削除方法」を参照）。
 
@@ -172,3 +180,4 @@ rm -rf .cache/huggingface/hub/models--Systran--faster-whisper-small
 | 2026-07-22 | 実行のたびに時刻タグ付き（`<name>.txt`）と時刻タグなし整形済み（`<name>_formatted.txt`）の2ファイルを自動生成するよう変更 |
 | 2026-07-22 | 出力先未指定時、ファイル名にモデル名・実行日時を含めて上書きを防止するよう変更 |
 | 2026-07-25 | ブラウザから利用できるWeb版（`server.py`）を追加。Flask等は使わず標準ライブラリのみで実装。音声アップロード→進捗表示→結果ダウンロードに対応。認証なし・組織内LAN限定・30日で自動削除。モデルキャッシュを`~/.cache/`からプロジェクト内`.cache/`に変更し、フォルダごとの移植を容易にした |
+| 2026-07-25 | Mac/LinuxのセットアップにPython標準の`venv`使用を明記（Homebrew版Python等でシステムPythonへの直接pip installがブロックされるため）。`.venv/`はPythonバイナリへの絶対パス依存のため移植不可（`.cache/`のモデルキャッシュのみ移植可能）である旨を追記 |

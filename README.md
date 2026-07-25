@@ -19,8 +19,12 @@
 
 ```bash
 cd audio_transcriber
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+Python標準ライブラリの`venv`を使う（Homebrew版Python等、システムPythonへの直接`pip install`がブロックされる環境があるため）。以後起動するときは毎回 `source .venv/bin/activate` してから `python transcribe.py ...` / `python server.py` を実行する。
 
 初回実行時にWhisperモデル（`small` はおよそ500MB）が自動ダウンロードされ、プロジェクト内 `.cache/huggingface/` にキャッシュされる（移植性のため、ホームディレクトリではなくプロジェクト内に固定している）。
 
@@ -40,6 +44,10 @@ pip install -r requirements.txt
 モデルキャッシュの保存先はOSによらずプロジェクト内 `.cache/huggingface/` に統一されている。
 
 ※ Windows環境での動作は未検証。ffmpegのPATH設定でつまずく可能性がある。
+
+### 別PCへの移植について
+
+`.venv/` はPythonバイナリへの絶対パスを含むため、フォルダごとコピーしても別PCでは動かない。移植先では **`.venv/` を除いて**プロジェクトフォルダをコピーし、移植先で改めて上記のセットアップ手順（`python -m venv .venv` から）をやり直すこと。一方 `.cache/huggingface/`（ダウンロード済みモデル）は単なるデータなのでそのままコピーしてよく、移植先での再ダウンロードを避けられる。
 
 ## 使い方
 
