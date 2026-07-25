@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>音声文字起こしツール</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>音声文字起こしツール</h1>
+  <p class="note">完全ローカル処理（faster-whisper）。音声データは外部に送信されません。</p>
+</header>
+
+<main>
+  <form id="upload-form">
+    <label>
+      音声ファイル
+      <input type="file" id="audio-file" accept="audio/*,video/*" required>
+    </label>
+
+    <label>
+      モデルサイズ
+      <select id="model-size">
+        <option value="tiny">tiny（動作確認・下書き用、最速）</option>
+        <option value="base">base</option>
+        <option value="small" selected>small（デフォルト、手早く内容把握）</option>
+        <option value="medium">medium（通常の会議・インタビュー向け）</option>
+        <option value="large-v3-turbo">large-v3-turbo（精度と速度のバランス重視）</option>
+        <option value="large-v3">large-v3（最高精度、かなり遅い）</option>
+      </select>
+    </label>
+
+    <label>
+      言語
+      <select id="language">
+        <option value="">自動検出</option>
+        <option value="ja">日本語</option>
+        <option value="en">英語</option>
+      </select>
+    </label>
+
+    <button type="submit" id="submit-btn">文字起こしを開始</button>
+  </form>
+
+  <section id="status-area" hidden>
+    <h2>進捗</h2>
+    <p id="status-text"></p>
+    <div class="progress-bar">
+      <div id="progress-fill"></div>
+    </div>
+  </section>
+
+  <section id="result-area" hidden>
+    <h2>結果</h2>
+    <ul>
+      <li><a id="download-timestamped" download>時刻タグ付きテキストをダウンロード</a></li>
+      <li><a id="download-formatted" download>整形済みテキストをダウンロード</a></li>
+    </ul>
+  </section>
+
+  <section id="error-area" hidden>
+    <p class="error" id="error-text"></p>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

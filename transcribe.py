@@ -14,8 +14,14 @@ faster-whisper（ローカル実行）を使用し、音声データを外部に
 
 import argparse
 import datetime
+import os
 import pathlib
 import sys
+
+# Webサーバー版と共通のモデルキャッシュを使い、プロジェクトフォルダごと
+# 移植できるようにするため、~/.cache/ ではなくプロジェクト内 .cache/ に固定する
+_PROJECT_DIR = pathlib.Path(__file__).resolve().parent
+os.environ.setdefault("HF_HOME", str(_PROJECT_DIR / ".cache" / "huggingface"))
 
 from faster_whisper import WhisperModel
 
@@ -28,12 +34,22 @@ def format_timestamp(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 
-def transcribe(
-    audio_path: pathlib.Path, model_size: str, language: str | None
-) -> tuple[list[str], list[str]]:
+def load_model(model_size: str) -> WhisperModel:
     print(f"モデル読み込み中: {model_size}")
-    model = WhisperModel(model_size, device="cpu", compute_type="int8")
+    return WhisperModel(model_size, device="cpu", compute_type="int8")
 
+
+def transcribe(
+    model: WhisperModel,
+    audio_path: pathlib.Path,
+    language: str | None,
+    on_segment=None,
+) -> tuple[list[str], list[str]]:
+    """ロード済みのモデルで文字起こしを行う。
+
+    on_segment(segment, info) を渡すと、セグメントを処理するたびに呼び出される
+    （Web版の進捗表示フック用。省略時はCLIとして完全に同じ動作をする）。
+    """
     print(f"文字起こし中: {audio_path.name}")
     segments, info = model.transcribe(str(audio_path), language=language, beam_size=5)
 
@@ -49,6 +65,8 @@ def transcribe(
         print(line)
         timestamped_lines.append(line)
         texts.append(text)
+        if on_segment:
+            on_segment(segment, info)
 
     return timestamped_lines, texts
 
@@ -85,6 +103,36 @@ USAGE_EXAMPLES = """\
 """
 
 
+def build_output_paths(
+    audio_path: pathlib.Path, model_size: str, output: str | None = None
+) -> tuple[pathlib.Path, pathlib.Path]:
+    """出力先パスを決定する（時刻タグ付き・整形済みの2種類）。
+
+    出力先未指定時はファイル名にモデル名と実行日時を含め、上書きを防止する。
+    """
+    if output:
+        output_path = pathlib.Path(output)
+    else:
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_path = pathlib.Path("output") / f"{audio_path.stem}_{model_size}_{timestamp}.txt"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    formatted_path = output_path.with_name(f"{output_path.stem}_formatted.txt")
+    return output_path, formatted_path
+
+
+def save_results(
+    output_path: pathlib.Path,
+    formatted_path: pathlib.Path,
+    timestamped_lines: list[str],
+    texts: list[str],
+) -> None:
+    output_path.write_text("\n".join(timestamped_lines), encoding="utf-8")
+    print(f"\n文字起こし結果（時刻タグ付き）を保存しました: {output_path}")
+
+    formatted_path.write_text(format_plain_text(texts), encoding="utf-8")
+    print(f"整形済みテキスト（時刻タグなし）を保存しました: {formatted_path}")
+
+
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "?":
         print(USAGE_EXAMPLES)
@@ -110,21 +158,12 @@ def main():
         print(f"エラー: 音声ファイルが見つかりません: {audio_path}", file=sys.stderr)
         sys.exit(1)
 
-    if args.output:
-        output_path = pathlib.Path(args.output)
-    else:
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = pathlib.Path("output") / f"{audio_path.stem}_{args.model}_{timestamp}.txt"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path, formatted_path = build_output_paths(audio_path, args.model, args.output)
 
-    timestamped_lines, texts = transcribe(audio_path, args.model, args.language)
+    model = load_model(args.model)
+    timestamped_lines, texts = transcribe(model, audio_path, args.language)
 
-    output_path.write_text("\n".join(timestamped_lines), encoding="utf-8")
-    print(f"\n文字起こし結果（時刻タグ付き）を保存しました: {output_path}")
-
-    formatted_path = output_path.with_name(f"{output_path.stem}_formatted.txt")
-    formatted_path.write_text(format_plain_text(texts), encoding="utf-8")
-    print(f"整形済みテキスト（時刻タグなし）を保存しました: {formatted_path}")
+    save_results(output_path, formatted_path, timestamped_lines, texts)
 
 
 if __name__ == "__main__":

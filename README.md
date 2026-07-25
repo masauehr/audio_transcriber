@@ -2,7 +2,7 @@
 
 詳しくは [MANUAL.md](MANUAL.md) を参照。
 
-音声ファイルをローカルで文字起こしするCLIツール。[faster-whisper](https://github.com/SYSTRAN/faster-whisper)（OpenAI Whisperの高速再実装）を使用し、音声データを外部に送信せず、すべてローカルで処理する。
+音声ファイルをローカルで文字起こしするツール。[faster-whisper](https://github.com/SYSTRAN/faster-whisper)（OpenAI Whisperの高速再実装）を使用し、音声データを外部に送信せず、すべてローカルで処理する。CLI（`transcribe.py`）とWeb版（`server.py`、ブラウザからアップロード・ダウンロード）の両方に対応。
 
 ## 特徴
 
@@ -10,6 +10,8 @@
 - **日本語対応**: 言語自動検出、または `--language ja` で明示指定可能
 - **2種類のテキストを同時出力**: `[HH:MM:SS - HH:MM:SS] テキスト` 形式の**時刻タグ付き**と、時刻タグを除いて句点ごとに改行した**整形済み**（`_formatted.txt`）の両方を `output/` に生成
 - **上書き防止**: 出力先を明示指定しない場合、ファイル名に実行日時とモデル名を含めるため、同じ音声を複数回・別モデルで実行しても過去の結果が消えない
+- **Web版あり**: Flask等は使わず標準ライブラリのみで実装。組織内LANで複数人がブラウザから利用できる（認証なし、社内LAN限定を想定）
+- **移植しやすい**: Whisperモデルのキャッシュはプロジェクト内 `.cache/` に保存されるため、フォルダごとコピーすればモデルも一緒に別PCへ移せる
 
 ## セットアップ
 
@@ -20,7 +22,7 @@ cd audio_transcriber
 pip install -r requirements.txt
 ```
 
-初回実行時にWhisperモデル（`small` はおよそ500MB）が自動ダウンロードされ、`~/.cache/huggingface/hub/` にキャッシュされる。
+初回実行時にWhisperモデル（`small` はおよそ500MB）が自動ダウンロードされ、プロジェクト内 `.cache/huggingface/` にキャッシュされる（移植性のため、ホームディレクトリではなくプロジェクト内に固定している）。
 
 ### Windows
 
@@ -31,10 +33,11 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-コード自体はOS依存の処理を使っていないため、Windowsでも同じ`transcribe.py`がそのまま動く。ただし以下の2点はMacと異なる。
+コード自体はOS依存の処理を使っていないため、Windowsでも同じ`transcribe.py`・`server.py`がそのまま動く。ただし以下の1点はMacと異なる。
 
 - **ffmpeg**: `brew install ffmpeg` の代わりに、[公式サイト](https://ffmpeg.org/download.html)からダウンロードしてPATHに追加するか、`winget install ffmpeg` を実行する
-- **モデルキャッシュの保存先**: `~/.cache/huggingface/hub/` ではなく `%USERPROFILE%\.cache\huggingface\hub\`（例: `C:\Users\<ユーザー名>\.cache\huggingface\hub\`）
+
+モデルキャッシュの保存先はOSによらずプロジェクト内 `.cache/huggingface/` に統一されている。
 
 ※ Windows環境での動作は未検証。ffmpegのPATH設定でつまずく可能性がある。
 
@@ -55,6 +58,17 @@ python transcribe.py input/sample.m4a --output output/result.txt
 # オプション例の一覧を表示
 python transcribe.py ?
 ```
+
+## Web版（ブラウザで利用）
+
+組織内LANで複数人が使えるように、ブラウザからアップロード・ダウンロードできるWeb版を用意している。認証機能はなく、社内LAN限定・少人数利用を想定している。
+
+```bash
+python server.py
+# → http://localhost:8090 （同じLAN内の他端末からは http://<このPCのIPアドレス>:8090）
+```
+
+音声ファイルをアップロードすると進捗が表示され、完了後に時刻タグ付き・整形済みの両方をダウンロードできる。アップロードされた音声・結果は30日で自動削除される。詳細は [MANUAL.md](MANUAL.md) の「Web版」セクションを参照。
 
 ### 対応フォーマット
 
