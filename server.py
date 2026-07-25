@@ -46,10 +46,10 @@ _model_cache: dict[str, object] = {}
 _model_cache_lock = threading.Lock()
 
 
-def get_model(model_size: str):
+def get_model(model_size: str, on_downloading=None):
     with _model_cache_lock:
         if model_size not in _model_cache:
-            _model_cache[model_size] = load_model(model_size)
+            _model_cache[model_size] = load_model(model_size, on_downloading=on_downloading)
         return _model_cache[model_size]
 
 
@@ -71,7 +71,15 @@ def worker_loop() -> None:
             with JOBS_LOCK:
                 job["status"] = "running"
 
-            model = get_model(job["model"])
+            def on_downloading(job=job):
+                with JOBS_LOCK:
+                    job["status"] = "downloading_model"
+
+            model = get_model(job["model"], on_downloading=on_downloading)
+
+            with JOBS_LOCK:
+                job["status"] = "running"
+
             audio_path = pathlib.Path(job["audio_path"])
             # 出力ファイル名は job_id ではなく元のアップロードファイル名から生成する
             display_name = pathlib.Path(job["filename"])

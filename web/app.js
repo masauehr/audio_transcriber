@@ -11,6 +11,7 @@ const errorText = document.getElementById("error-text");
 
 const STATUS_LABELS = {
   pending: "順番待ち中...",
+  downloading_model: "モデルをダウンロード中...（初回のみ。サイズによっては数分かかります）",
   running: "文字起こし中...",
   done: "完了しました",
   error: "エラーが発生しました",
@@ -39,14 +40,41 @@ function showError(message) {
   errorText.textContent = message;
 }
 
+const resultText = document.getElementById("result-text");
+const tabButtons = document.querySelectorAll(".tab-btn");
+let currentJobId = null;
+
+async function loadResultText(jobId, type) {
+  resultText.textContent = "読み込み中...";
+  try {
+    const res = await fetch(`/api/jobs/${jobId}/download?type=${type}`);
+    resultText.textContent = res.ok ? await res.text() : "結果の取得に失敗しました。";
+  } catch (e) {
+    resultText.textContent = "結果の取得に失敗しました。";
+  }
+}
+
+tabButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    tabButtons.forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    loadResultText(currentJobId, btn.dataset.type);
+  });
+});
+
 function showResult(jobId) {
   statusArea.hidden = true;
   errorArea.hidden = true;
   resultArea.hidden = false;
+  currentJobId = jobId;
   document.getElementById("download-timestamped").href =
     `/api/jobs/${jobId}/download?type=timestamped`;
   document.getElementById("download-formatted").href =
     `/api/jobs/${jobId}/download?type=formatted`;
+
+  tabButtons.forEach((b) => b.classList.remove("active"));
+  document.querySelector('.tab-btn[data-type="formatted"]').classList.add("active");
+  loadResultText(jobId, "formatted");
 }
 
 function pollStatus(jobId) {
@@ -69,8 +97,13 @@ function pollStatus(jobId) {
     }
 
     statusText.textContent = STATUS_LABELS[job.status] || job.status;
-    if (typeof job.progress === "number") {
-      progressFill.style.width = `${Math.round(job.progress * 100)}%`;
+    if (job.status === "downloading_model") {
+      progressFill.classList.add("indeterminate");
+    } else {
+      progressFill.classList.remove("indeterminate");
+      if (typeof job.progress === "number") {
+        progressFill.style.width = `${Math.round(job.progress * 100)}%`;
+      }
     }
 
     if (job.status === "done") {

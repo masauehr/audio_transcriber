@@ -24,6 +24,7 @@ _PROJECT_DIR = pathlib.Path(__file__).resolve().parent
 os.environ.setdefault("HF_HOME", str(_PROJECT_DIR / ".cache" / "huggingface"))
 
 from faster_whisper import WhisperModel
+from faster_whisper.utils import download_model
 
 
 def format_timestamp(seconds: float) -> str:
@@ -34,7 +35,23 @@ def format_timestamp(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 
-def load_model(model_size: str) -> WhisperModel:
+def is_model_cached(model_size: str) -> bool:
+    """指定サイズのモデルが既にローカルにダウンロード済みかを調べる"""
+    try:
+        download_model(model_size, local_files_only=True)
+        return True
+    except Exception:
+        return False
+
+
+def load_model(model_size: str, on_downloading=None) -> WhisperModel:
+    """モデルをロードする。
+
+    on_downloading() を渡すと、モデルが未ダウンロードの場合にダウンロード開始前に
+    呼び出される（Web版で「モデルダウンロード中」を表示するためのフック）。
+    """
+    if on_downloading and not is_model_cached(model_size):
+        on_downloading()
     print(f"モデル読み込み中: {model_size}")
     return WhisperModel(model_size, device="cpu", compute_type="int8")
 

@@ -53,7 +53,12 @@
 
   <section id="result-area" hidden>
     <h2>結果</h2>
-    <ul>
+    <div class="result-tabs">
+      <button type="button" class="tab-btn active" data-type="formatted">整形済み</button>
+      <button type="button" class="tab-btn" data-type="timestamped">時刻タグ付き</button>
+    </div>
+    <pre id="result-text"></pre>
+    <ul class="download-links">
       <li><a id="download-timestamped" download>時刻タグ付きテキストをダウンロード</a></li>
       <li><a id="download-formatted" download>整形済みテキストをダウンロード</a></li>
     </ul>

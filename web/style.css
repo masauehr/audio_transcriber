@@ -93,16 +93,64 @@ button:hover:not(:disabled) {
   transition: width 0.3s ease;
 }
 
-#result-area ul {
+#progress-fill.indeterminate {
+  width: 40%;
+  background: #e08e0b;
+  animation: indeterminate-slide 1.2s infinite ease-in-out;
+}
+
+@keyframes indeterminate-slide {
+  0% { margin-left: -40%; }
+  100% { margin-left: 100%; }
+}
+
+.result-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tab-btn {
+  width: auto;
+  padding: 6px 14px;
+  background: #eee;
+  color: #444;
+  font-size: 0.85rem;
+}
+
+.tab-btn.active {
+  background: #1a6fa0;
+  color: white;
+}
+
+.tab-btn:hover:not(.active) {
+  background: #ddd;
+}
+
+#result-text {
+  max-height: 360px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f7f9fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+#result-area .download-links {
   list-style: none;
   padding: 0;
 }
 
-#result-area li {
+#result-area .download-links li {
   margin-bottom: 8px;
 }
 
-#result-area a {
+#result-area .download-links a {
   color: #1a6fa0;
   font-weight: bold;
 }
