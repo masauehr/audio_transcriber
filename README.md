@@ -73,6 +73,8 @@ python transcribe.py ?
 
 組織内LANで複数人が使えるように、ブラウザからアップロード・ダウンロードできるWeb版を用意している。認証機能はなく、社内LAN限定・少人数利用を想定している。
 
+![Web版の画面](docs/screenshot-web.png)
+
 ```bash
 python server.py
 # → http://localhost:8090 （同じLAN内の他端末からは http://<このPCのIPアドレス>:8090）
