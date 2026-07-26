@@ -49,6 +49,8 @@ pip install -r requirements.txt
 
 `.venv/` はPythonバイナリへの絶対パスを含むため、フォルダごとコピーしても別PCでは動かない。移植先では **`.venv/` を除いて**プロジェクトフォルダをコピーし、移植先で改めて上記のセットアップ手順（`python -m venv .venv` から）をやり直すこと。一方 `.cache/huggingface/`（ダウンロード済みモデル）は単なるデータなのでそのままコピーしてよく、移植先での再ダウンロードを避けられる。
 
+Windowsサーバーへの移植手順（コピー対象・ファイアウォール設定・トラブルシューティング等）は [WINDOWS_MIGRATION.md](WINDOWS_MIGRATION.md) を参照。
+
 ## 使い方
 
 ```bash

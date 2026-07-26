@@ -15,6 +15,7 @@
 | `/Users/masahiro/projects/audio_transcriber/input/` | 文字起こし対象の音声ファイル置き場（gitignore対象）。Web版のアップロードもここに保存 |
 | `/Users/masahiro/projects/audio_transcriber/output/` | 文字起こし結果テキスト出力先（gitignore対象） |
 | `/Users/masahiro/projects/audio_transcriber/.cache/huggingface/` | Whisperモデルのキャッシュ（gitignore対象）。プロジェクト内に固定しているため、フォルダごとコピーすればモデルも一緒に移植できる |
+| `/Users/masahiro/projects/audio_transcriber/WINDOWS_MIGRATION.md` | Windowsサーバーへの移植手順（コピー対象・ファイアウォール設定・トラブルシューティング等） |
 
 GitHub: https://github.com/masauehr/audio_transcriber （プライベート。`input/`・`output/`は音声データ・文字起こし結果を含むためコミット対象外）
 
@@ -55,6 +56,8 @@ Mac/Linuxとの違いは以下の1点のみ。
 ### 別PCへの移植について
 
 `.venv/` はPythonバイナリへの絶対パスを内部に持つため、**フォルダごとコピーしても別PCでは動かない**。移植する際は `.venv/` を除いてプロジェクトフォルダをコピーし、移植先で改めて上記セットアップ（`python -m venv .venv` から）をやり直す。一方 `.cache/huggingface/`（ダウンロード済みのWhisperモデル）は単なるデータファイルなのでそのままコピーしてよく、移植先での再ダウンロードを避けられる。
+
+Windowsサーバーへの詳しい移植手順（コピー対象の一覧・ファイアウォール設定・タスクスケジューラでの自動起動・トラブルシューティング等）は [WINDOWS_MIGRATION.md](WINDOWS_MIGRATION.md) にまとめている。
 
 モデルキャッシュの保存先はOSによらずプロジェクト内 `.cache/huggingface/` に統一されている（詳細は後述の「モデルの保存先・削除方法」を参照）。
 
@@ -181,3 +184,4 @@ rm -rf .cache/huggingface/hub/models--Systran--faster-whisper-small
 | 2026-07-22 | 出力先未指定時、ファイル名にモデル名・実行日時を含めて上書きを防止するよう変更 |
 | 2026-07-25 | ブラウザから利用できるWeb版（`server.py`）を追加。Flask等は使わず標準ライブラリのみで実装。音声アップロード→進捗表示→結果ダウンロードに対応。認証なし・組織内LAN限定・30日で自動削除。モデルキャッシュを`~/.cache/`からプロジェクト内`.cache/`に変更し、フォルダごとの移植を容易にした |
 | 2026-07-25 | Mac/LinuxのセットアップにPython標準の`venv`使用を明記（Homebrew版Python等でシステムPythonへの直接pip installがブロックされるため）。`.venv/`はPythonバイナリへの絶対パス依存のため移植不可（`.cache/`のモデルキャッシュのみ移植可能）である旨を追記 |
+| 2026-07-26 | Windowsサーバーへの詳細な移植手順を`WINDOWS_MIGRATION.md`としてまとめ、README.md・MANUAL.mdからリンクを追加 |
