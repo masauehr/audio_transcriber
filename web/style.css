@@ -49,6 +49,14 @@ select {
   font-weight: normal;
 }
 
+.format-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: #888;
+}
+
 button {
   width: 100%;
   padding: 12px;
